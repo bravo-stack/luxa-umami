@@ -1,25 +1,35 @@
 'use client';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useApi } from '@/components/hooks';
 import { removeClientAuthToken } from '@/lib/client';
 import { setUser } from '@/store/app';
 
 export function LogoutPage() {
-  const router = useRouter();
   const { post } = useApi();
+  const logoutStarted = useRef(false);
 
   useEffect(() => {
-    async function logout() {
-      await post('/auth/logout');
-
-      window.location.href = `${process.env.basePath || ''}/login`;
+    if (logoutStarted.current) {
+      return;
     }
 
-    removeClientAuthToken();
-    setUser(null);
-    logout();
-  }, [router, post]);
+    logoutStarted.current = true;
+
+    async function logout() {
+      try {
+        await post('/auth/logout');
+      } catch {
+        // The server session may already be expired or revoked.
+      } finally {
+        removeClientAuthToken();
+        setUser(null);
+
+        window.location.replace(`${process.env.basePath || ''}/login`);
+      }
+    }
+
+    void logout();
+  }, [post]);
 
   return null;
 }
