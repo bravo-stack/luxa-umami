@@ -46,6 +46,18 @@ Create an `.env` file with the following:
 DATABASE_URL=connection-url
 ```
 
+Umami limits each process to one PostgreSQL connection by default, which is safe for serverless
+deployments. The pool size and connection timeout can be tuned when needed:
+
+```bash
+DATABASE_POOL_MAX=1
+DATABASE_POOL_CONNECTION_TIMEOUT_MS=10000
+```
+
+For serverless deployments, use your provider's transaction-pooler URL for `DATABASE_URL`. For
+Supabase, this is the pooler endpoint on port `6543`; keep a direct connection URL available only
+for migrations when required by your deployment workflow.
+
 Optional: set `API_URL` to change the base URL used by internal UI API calls.
 Relative paths are served under `BASE_PATH`; absolute URLs are proxied through the local `/api` route.
 For example, `API_URL=/internal-api` or `API_URL=https://api.example.com/api`.
